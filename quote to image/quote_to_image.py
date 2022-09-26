@@ -31,24 +31,39 @@ def TurnQuoteIntoImage(time, quote, timestring, fname=None, title=None, author=N
     h_offset = h_anchor
     v_offset = v_anchor
     index = 0
+    # for line in wrp_lines.splitlines():
+    #     for word in line.split():
+    #         word += ' '
+    #         if index in range(timestr_starts, timestr_ends):
+    #             fnt = fnt2
+    #             color = c_fnt2
+    #         else:
+    #             fnt = fnt1
+    #             color = c_fnt1
+    #         paintedworld.text((h_offset, v_offset), word, color, font=fnt)
+    #         h_offset += paintedworld.textlength(word, fnt)
+    #         index += 1
+    #     # the offset calculated by multiline_text (what we're trying to mimic)
+    #     # is based on uppercase letter A plus 4 pixels for whatever fucking
+    #     # reason. see: https://github.com/python-pillow/Pillow/discussions/6620
+    #     v_offset += fnt1.getbbox("A")[3] + 4
+    #     h_offset = h_anchor
+    # # paintedworld.multiline_text((h_anchor, v_anchor), lines, color_normal, fnt)
+
     for line in wrp_lines.splitlines():
-        for word in line.split():
-            word += ' '
-            if index in range(timestr_starts, timestr_ends):
-                fnt = fnt2
-                color = c_fnt2
+        word = ''
+        for char in line:
+            if char == ' ':
+                word += ' '
+                paintedworld.text((h_offset, v_offset), word, c_fnt1, font=fnt1)
+                h_offset += paintedworld.textlength(word, fnt1)
+                word = ''
             else:
-                fnt = fnt1
-                color = c_fnt1
-            paintedworld.text((h_offset, v_offset), word, color, font=fnt)
-            h_offset += paintedworld.textlength(word, fnt)
+                word += char
             index += 1
-        # the offset calculated by multiline_text (what we're trying to mimic)
-        # is based on uppercase letter A plus 4 pixels for whatever fucking
-        # reason. see: https://github.com/python-pillow/Pillow/discussions/6620
-        v_offset += fnt1.getbbox("A")[3] + 4
+        paintedworld.text((h_offset, v_offset), word, c_fnt1, font=fnt1)
         h_offset = h_anchor
-    # paintedworld.multiline_text((h_anchor, v_anchor), lines, color_normal, fnt)
+        v_offset += fnt1.getbbox("A")[3] + 4
 
     if time == previoustime:
         imagenumber += 1
