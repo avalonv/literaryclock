@@ -1,6 +1,7 @@
 from PIL import Image, ImageFont, ImageDraw
 import csv
 
+jobs = 50
 imagenumber = 0
 previoustime = ''
 
@@ -37,64 +38,66 @@ def TurnQuoteIntoImage(time, quote, timestring, fname=None, title=None, author=N
 
     timestr_ends = timestr_starts + len(timestring)
 
-    quote, fntsize = fill_textbox(quotelength, quoteheight, quote, fntname1)
+    quote, fntsize = calc_fntsize(quotelength, quoteheight, quote, fntname1)
     fnt1 = ImageFont.FreeTypeFont(fntname1, fntsize)
     fnt2 = ImageFont.FreeTypeFont(fntname2, fntsize)
 
-    # sandwich timestring in bread so it's easy to to find later
-    bread = '|'
+    # sandwich timestring in heads so it's easy to to find later
+    head = '<|*_*|>'
     lines = quote[:timestr_starts]
-    lines += f'{bread}{quote[timestr_starts:timestr_ends]}{bread}'
+    lines += f'{head}{quote[timestr_starts:timestr_ends]}{head}'
     lines += quote[timestr_ends:]
 
     g_fnt = fnt1
     g_color = c_fnt1
     h_pos = h_anchor
     v_pos = v_anchor
-    slices_found = 0
-    eating_sandwich = False
-    paint = paintedworld.text
-    getsize = paintedworld.textlength
+    heads_found = 0
+    in_timestring = False
+    write = paintedworld.text
+    textlength = paintedworld.textlength
     wordnow = ''
     for line in lines.splitlines():
         for word in line.split():
             word += ' '
             # if the entire timestring is one word, split the non-timestr
             # bits stuck to it, and print the whole thing in 3 parts
-            if word.count(bread) == 2:
-                wordnow = word.split(bread)[0]
-                paint((h_pos, v_pos), wordnow, c_fnt1, font=fnt1)
-                h_pos += getsize(wordnow, fnt1)
-                wordnow = word.split(bread)[1]
-                paint((h_pos, v_pos), wordnow, c_fnt2, font=fnt2)
-                h_pos += getsize(wordnow, fnt2)
-                wordnow = word.split(bread)[2]
-                paint((h_pos, v_pos), wordnow, c_fnt1, font=fnt1)
-                h_pos += getsize(wordnow, fnt1)
+            if word.count(head) == 2:
+                wordnow = word.split(head)[0]
+                write((h_pos, v_pos), wordnow, c_fnt1, font=fnt1)
+                h_pos += textlength(wordnow, fnt1)
+                wordnow = word.split(head)[1]
+                write((h_pos, v_pos), wordnow, c_fnt2, font=fnt2)
+                h_pos += textlength(wordnow, fnt2)
+                wordnow = word.split(head)[2]
+                write((h_pos, v_pos), wordnow, c_fnt1, font=fnt1)
+                h_pos += textlength(wordnow, fnt1)
                 word = ''
-            # otherwise change the font, and wait for the next bread slice
-            elif word.count(bread) == 1:
-                if slices_found == 0:
-                    eating_sandwich = True
+                heads_found += 2
+            # otherwise change the font, and wait for the next head
+            elif word.count(head) == 1:
+                if heads_found == 0:
+                    in_timestring = True
                     g_fnt = fnt2
                     g_color = c_fnt2
-                    wordnow = word.split(bread)[0]
-                    word = word.split(bread)[1]
-                if slices_found == 1:
-                    eating_sandwich = False
-                    wordnow = word.split(bread)[0]
-                    word = word.split(bread)[1]
-                paint((h_pos, v_pos), wordnow, c_fnt2, font=fnt2)
-                h_pos += getsize(wordnow, g_fnt)
-                slices_found += 1
-            if eating_sandwich:
+                    wordnow = word.split(head)[0]
+                    word = word.split(head)[1]
+                if heads_found == 1:
+                    in_timestring = False
+                    wordnow = word.split(head)[0]
+                    word = word.split(head)[1]
+                write((h_pos, v_pos), wordnow, c_fnt2, font=fnt2)
+                h_pos += textlength(wordnow, g_fnt)
+                heads_found += 1
+            if in_timestring:
                 g_fnt = fnt2
                 g_color = c_fnt2
-            elif not eating_sandwich:
+            elif not in_timestring:
                 g_fnt = fnt1
                 g_color = c_fnt1
-            paint((h_pos, v_pos), word, g_color, font=g_fnt)
-            h_pos += getsize(word, g_fnt)
+            # this is the bit that actually does most of the writing
+            write((h_pos, v_pos), word, g_color, font=g_fnt)
+            h_pos += textlength(word, g_fnt)
         # the offset calculated by multiline_text (what we're trying to mimic)
         # is based on uppercase letter A plus 4 pixels for whatever fucking
         # reason. see: https://github.com/python-pillow/Pillow/discussions/6620
@@ -105,7 +108,8 @@ def TurnQuoteIntoImage(time, quote, timestring, fname=None, title=None, author=N
     # ariandel.show()
 
 
-def wrap_lines(text:str, font:ImageFont.FreeTypeFont, line_length:int):
+def wrap_lines(text:str, font:ImageFont.FreeTypeFont, line_length:int,
+                                                         strict=False):
     # wraps lines to maximize the number of words within line_length. note
     # that long words or a big font can easily exceed line_length, you still
     # need to check the bbox size elsewhere. adapted from Chris Collett
@@ -120,12 +124,12 @@ def wrap_lines(text:str, font:ImageFont.FreeTypeFont, line_length:int):
         return '\n'.join(lines)
 
 
-def fill_textbox(length:int, height:int, text:str, fntname:str, basesize=2,
-                                                              maxsize=1000):
+def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=2,
+                                                              maxsize=800):
     # this will dynamically wrap and scale text with the optimal font size to
     # fill a given textbox, both length and height wise. manually setting
     # basesize and maxsize can speed up calculating very large batches of text.
-    # returns wrapped text and a ImageFont.FreeTypeFont object
+    # returns wrapped text and fontsize, doesn't actually draw anything
 
     # these are just for calculating the textbox size, they're discarded
     louvre = Image.new(mode='RGB', size=(0,0))
@@ -159,7 +163,7 @@ with open('litclock_annotated_br2.csv', newline='\n') as csvfile:
     quotereader = csv.DictReader(csvfile, delimiter='|')
     i = 0
     for row in quotereader:
-        if i >= 50:
+        if i >= jobs:
         # if i >= 100:
             break
         else:
