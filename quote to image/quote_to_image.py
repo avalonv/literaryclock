@@ -9,6 +9,8 @@ def TurnQuoteIntoImage(time, quote, timestring, fname=None, title=None, author=N
     imagesize = (600,800)
     quoteheight = 745
     quotelength = 570
+    v_anchor = 0
+    h_anchor = 18
     c_fnt1 = (125,125,125) # grey
     c_fnt2 = (0,0,0)       # black
     c_bg = (255,255,255)   # white
@@ -18,52 +20,72 @@ def TurnQuoteIntoImage(time, quote, timestring, fname=None, title=None, author=N
     ariandel = Image.new(mode='RGB', size=(imagesize), color=c_bg)
     paintedworld = ImageDraw.Draw(ariandel)
 
-    timestr_lenght = len(timestring.split())
-    timestr_starts = len(quote[0:quote.find(timestring)].split())
-    timestr_ends = timestr_starts + timestr_lenght
+    timestr_starts = quote.find(timestring)
+    timestr_ends = timestr_starts + len(timestring)
 
-    wrp_lines, fntsize = fill_textbox(quotelength, quoteheight, quote, fntname1)
+    quote, fntsize = fill_textbox(quotelength, quoteheight, quote, fntname1)
     fnt1 = ImageFont.FreeTypeFont(fntname1, fntsize)
     fnt2 = ImageFont.FreeTypeFont(fntname2, fntsize)
 
-    v_anchor = 0
-    h_anchor = 18
-    h_offset = h_anchor
-    v_offset = v_anchor
-    index = 0
-    # for line in wrp_lines.splitlines():
-    #     for word in line.split():
-    #         word += ' '
-    #         if index in range(timestr_starts, timestr_ends):
-    #             fnt = fnt2
-    #             color = c_fnt2
-    #         else:
-    #             fnt = fnt1
-    #             color = c_fnt1
-    #         paintedworld.text((h_offset, v_offset), word, color, font=fnt)
-    #         h_offset += paintedworld.textlength(word, fnt)
-    #         index += 1
-    #     # the offset calculated by multiline_text (what we're trying to mimic)
-    #     # is based on uppercase letter A plus 4 pixels for whatever fucking
-    #     # reason. see: https://github.com/python-pillow/Pillow/discussions/6620
-    #     v_offset += fnt1.getbbox("A")[3] + 4
-    #     h_offset = h_anchor
-    # # paintedworld.multiline_text((h_anchor, v_anchor), lines, color_normal, fnt)
+    # sandwich timestring in bread so it's easy to to find later
+    bread = '|'
+    lines = quote[:timestr_starts]
+    lines += f'{bread}{quote[timestr_starts:timestr_ends]}{bread}'
+    lines += quote[timestr_ends:]
 
-    for line in wrp_lines.splitlines():
-        word = ''
-        for char in line:
-            if char == ' ':
-                word += ' '
-                paintedworld.text((h_offset, v_offset), word, c_fnt1, font=fnt1)
-                h_offset += paintedworld.textlength(word, fnt1)
+    g_fnt = fnt1
+    g_color = c_fnt1
+    h_pos = h_anchor
+    v_pos = v_anchor
+    slices_found = 0
+    eating_sandwich = False
+    paint = paintedworld.text
+    getsize = paintedworld.textlength
+    wordnow = ''
+    for line in lines.splitlines():
+        for word in line.split():
+            word += ' '
+            # if the entire timestring is one word, split the non-timestr
+            # bits stuck to it, and print the whole thing in 3 parts
+            if word.count(bread) == 2:
+                wordnow = word.split(bread)[0]
+                paint((h_pos, v_pos), wordnow, c_fnt1, font=fnt1)
+                h_pos += getsize(wordnow, fnt1)
+                wordnow = word.split(bread)[1]
+                paint((h_pos, v_pos), wordnow, c_fnt2, font=fnt2)
+                h_pos += getsize(wordnow, fnt2)
+                wordnow = word.split(bread)[2]
+                paint((h_pos, v_pos), wordnow, c_fnt1, font=fnt1)
+                h_pos += getsize(wordnow, fnt1)
                 word = ''
-            else:
-                word += char
-            index += 1
-        paintedworld.text((h_offset, v_offset), word, c_fnt1, font=fnt1)
-        h_offset = h_anchor
-        v_offset += fnt1.getbbox("A")[3] + 4
+            # otherwise change the font, and wait for the next bread slice
+            elif word.count(bread) == 1:
+                if slices_found == 0:
+                    eating_sandwich = True
+                    g_fnt = fnt2
+                    g_color = c_fnt2
+                    wordnow = word.split(bread)[0]
+                    word = word.split(bread)[1]
+                if slices_found == 1:
+                    eating_sandwich = False
+                    wordnow = word.split(bread)[0]
+                    word = word.split(bread)[1]
+                paint((h_pos, v_pos), wordnow, g_color, font=g_fnt)
+                h_pos += getsize(wordnow, g_fnt)
+                slices_found += 1
+            if eating_sandwich:
+                g_fnt = fnt2
+                g_color = c_fnt2
+            elif not eating_sandwich:
+                g_fnt = fnt1
+                g_color = c_fnt1
+            paint((h_pos, v_pos), word, g_color, font=g_fnt)
+            h_pos += getsize(word, g_fnt)
+        # the offset calculated by multiline_text (what we're trying to mimic)
+        # is based on uppercase letter A plus 4 pixels for whatever fucking
+        # reason. see: https://github.com/python-pillow/Pillow/discussions/6620
+        v_pos += fnt1.getbbox("A")[3] + 4
+        h_pos = h_anchor
 
     if time == previoustime:
         imagenumber += 1
