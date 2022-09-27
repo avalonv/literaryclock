@@ -20,7 +20,21 @@ def TurnQuoteIntoImage(time, quote, timestring, fname=None, title=None, author=N
     ariandel = Image.new(mode='RGB', size=(imagesize), color=c_bg)
     paintedworld = ImageDraw.Draw(ariandel)
 
-    timestr_starts = quote.find(timestring)
+    if time == previoustime:
+        imagenumber += 1
+    else:
+        imagenumber = 0
+        previoustime = time
+    savepath = f'images/test2/quote_{time}_{fname}.png'
+
+    # the case and timestring can be mismatched. Checking this is very important
+    timestr_starts = 0
+    try:
+        timestr_starts = quote.lower().index(timestring.lower())
+    except ValueError:
+        print(f'WARNING: missing timestring for {savepath}, discarding')
+        return
+
     timestr_ends = timestr_starts + len(timestring)
 
     quote, fntsize = fill_textbox(quotelength, quoteheight, quote, fntname1)
@@ -87,13 +101,6 @@ def TurnQuoteIntoImage(time, quote, timestring, fname=None, title=None, author=N
         v_pos += fnt1.getbbox("A")[3] + 4
         h_pos = h_anchor
 
-    if time == previoustime:
-        imagenumber += 1
-    else:
-        imagenumber = 0
-        previoustime = time
-    savepath = f'images/test/quote_{time}_{fname}.png'
-    print(savepath)
     ariandel.save(savepath)
     # ariandel.show()
 
