@@ -70,7 +70,7 @@ def TurnQuoteIntoImage(time, quote, timestring, fname=None, title=None, author=N
                     eating_sandwich = False
                     wordnow = word.split(bread)[0]
                     word = word.split(bread)[1]
-                paint((h_pos, v_pos), wordnow, g_color, font=g_fnt)
+                paint((h_pos, v_pos), wordnow, c_fnt2, font=fnt2)
                 h_pos += getsize(wordnow, g_fnt)
                 slices_found += 1
             if eating_sandwich:
