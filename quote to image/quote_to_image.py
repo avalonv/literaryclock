@@ -3,6 +3,7 @@ from sys import argv
 import csv
 
 # constants
+csvpath = 'litclock_annotated_br2.csv'
 include_metadata = True    # whether to include author and title name
 imagesize = (600,800)
 color_bg = (255,255,255)   # white
@@ -17,8 +18,8 @@ imagenumber = 0
 previoustime = ''
 
 
-def TurnQuoteIntoImage(time:str, quote:str, timestring:str, author:str,
-                                                            title:str):
+def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
+                                               author:str, title:str):
     global imagenumber, previoustime
     quoteheight = 720
     quotelength = 570
@@ -52,19 +53,20 @@ def TurnQuoteIntoImage(time:str, quote:str, timestring:str, author:str,
     quote, fntsize = calc_fntsize(quotelength, quoteheight, quote, fntname_high)
     font_norm = ImageFont.FreeTypeFont(fntname_norm, fntsize)
     font_high = ImageFont.FreeTypeFont(fntname_high, fntsize)
-    ariandel = draw_quote(ariandel, (quotestart_x,quotestart_y), quote,
-                            timestring, font_norm, font_high)
+    try:
+        draw_quote(ariandel, (quotestart_x,quotestart_y), quote,
+                                timestring, font_norm, font_high)
+    except LookupError:
+        print(f"WARNING: missing timestring at csv line {index+1}, skipping")
+        return
 
     if time == previoustime:
         imagenumber += 1
     else:
         imagenumber = 0
         previoustime = time
-    savepath = f'images/metadata/quote_{time}_{author}.jpeg'
-    if not ariandel == None:
-        paintedworld.save(savepath)
-    else:
-        print(f'WARNING: missing timestring for {savepath}, discarding')
+    savepath = f'images/metadata/quote_{time}_{imagenumber}.jpeg'
+    paintedworld.save(savepath)
 
 
 def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
@@ -80,7 +82,7 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     try:
         substr_starts = flattened.lower().index(substr.lower())
     except ValueError:
-        return None
+        raise LookupError
     substr_ends = substr_starts + len(substr)
     head = '|'
     lines = text[:substr_starts]
@@ -134,7 +136,6 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
         # reason. see https://github.com/python-pillow/Pillow/discussions/6620
         y += font_norm.getbbox("A")[3] + 4
         x = start_x
-    return drawobj
 
 
 def wrap_lines(text:str, font:ImageFont.FreeTypeFont, line_length:int):
@@ -198,13 +199,13 @@ if __name__ == '__main__':
     if len(argv) > 2:
         jobs = int(argv[1])
     else:
-        jobs = 50
-    with open('litclock_annotated_br2.csv', newline='\n') as csvfile:
+        jobs = 0
+    with open(csvpath, newline='\n') as csvfile:
         quotereader = csv.DictReader(csvfile, delimiter='|')
         i = 0
         for row in quotereader:
-            if i >= jobs:
+            if jobs and i >= jobs:
                 break
             else:
                 i += 1
-                TurnQuoteIntoImage(row['time'],row['quote'], row['timestring'], row['author'], row['title'])
+                TurnQuoteIntoImage(i, row['time'],row['quote'], row['timestring'], row['author'], row['title'])
