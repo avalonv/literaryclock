@@ -141,7 +141,7 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
                 x += textlength(wordnow, font_high)
                 if marks_found == 1:
                     current_style = fntstyle_high
-                else: # if marks == 1:
+                else: # if marks == 2:
                     current_style = fntstyle_norm
             # this is the bit that actually does most of the writing
             write((x,y), word, *current_style)
@@ -210,12 +210,11 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
     return lines, fntsize
 
 
-# only run the script if invoked directly
-if __name__ == '__main__':
+def main():
     hardworker = ' /ᐠ - ˕ -マ Ⳋ'
     with open(csvpath, newline='\n') as csvfile:
-        # if number is passed as an argument, only do count quotes
-        if len(argv) > 2:
+        # if number is passed as an argument, only process count items
+        if len(argv) > 1:
             jobs = int(argv[1])
         else:
             jobs = len(csvfile.readlines()) - 1
@@ -229,3 +228,13 @@ if __name__ == '__main__':
                 row['timestring'], row['author'], row['title'])
             progressbar = f'{hardworker} working.... {i+1}/{jobs}'
             print(progressbar, end='\r', flush=True)
+
+
+# only run the script if invoked directly
+if __name__ == '__main__':
+    try:
+        main()
+        print("")
+    except KeyboardInterrupt:
+        print("\nI hate work")
+        exit(0)
