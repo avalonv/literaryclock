@@ -1,20 +1,26 @@
-from PIL import Image, ImageFont, ImageDraw
-from sys import argv
+from sys import argv, exit
 import csv
+try:
+    from PIL import Image, ImageFont, ImageDraw
+except ModuleNotFoundError:
+    print("Please install Pillow!")
+    print("run 'pip3 install pillow'")
+    exit(1)
+
 
 # constants
 csvpath = 'litclock_annotated_br2.csv'
 imgpath = 'images/'
 imgformat = 'png'       # jpeg is faster but lossy
 include_metadata = True # whether to include author and title name
-imgsize = (600,800)   # width/height
+imgsize = (600,800)     # width/height
 color_bg = 255          # white
 color_norm = 125        # grey
 color_high = 0          # black
 fntname_norm = 'bookerly.ttf'
 fntname_high = 'bookerlybold.ttf'
-fntname_cite = 'baskervilleboldbt.ttf'
-fntsize_cite = 25
+fntname_mdata = 'baskervilleboldbt.ttf'
+fntsize_mdata = 25
 # don't touch
 imgnumber = 0
 previoustime = ''
@@ -23,34 +29,35 @@ previoustime = ''
 def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
                                                author:str, title:str):
     global imgnumber, previoustime
+    savepath = imgpath
     quoteheight = 720
     quotelength = 570
     quotestart_y = 0
     quotestart_x = 20
-    savepath = imgpath
+    mdatalength = 500
+    mdatastart_y = 785
+    mdatastart_x = 585
 
+    # create the object. mode 'L' restricts to 8bit black and white
     paintedworld = Image.new(mode='L', size=(imgsize), color=color_bg)
     ariandel = ImageDraw.Draw(paintedworld)
 
-    # draw the credits
+    # draw the title and author name
     if include_metadata:
-        font_cite = ImageFont.FreeTypeFont(fntname_cite, fntsize_cite)
-        citation = f'—{title.strip()}, {author.strip()}'
-        citelength = 500
-        citestart_y = 785
-        citestart_x = 585
-        if font_cite.getlength(citation) > citelength:
-            citation = wrap_lines(citation, font_cite, citelength - 30)
-        # the more lines there are, the higher the credits start,
-        # this limits where the quote is allowed to end
-        for line in citation.splitlines():
-            citestart_y -= font_cite.getbbox("A")[3] + 4
-        quoteheight = citestart_y - 35
-        cite_y = citestart_y
-        for line in citation.splitlines():
-            ariandel.text((citestart_x, cite_y), line, color_high,
-                                                    font_cite, anchor='rm')
-            cite_y += font_cite.getbbox("A")[3] + 4
+        font_mdata = ImageFont.FreeTypeFont(fntname_mdata, fntsize_mdata)
+        metadata = f'—{title.strip()}, {author.strip()}'
+        # wrap lines into a reasonable length and lower the maximum height the
+        # quote can occupy according to the number of lines the credits use
+        if font_mdata.getlength(metadata) > mdatalength:
+            metadata = wrap_lines(metadata, font_mdata, mdatalength - 30)
+        for line in metadata.splitlines():
+            mdatastart_y -= font_mdata.getbbox("A")[3] + 4
+        quoteheight = mdatastart_y - 35
+        mdata_y = mdatastart_y
+        for line in metadata.splitlines():
+            ariandel.text((mdatastart_x, mdata_y), line, color_high,
+                                                    font_mdata, anchor='rm')
+            mdata_y += font_mdata.getbbox("A")[3] + 4
     else:
         savepath += 'nometadata/'
 
@@ -66,9 +73,9 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
         print(f"WARNING: missing timestring at csv line {index+1}, skipping")
         return
 
-    # increment a number if time is indentical to the last one, so
+    # increment a number if time is identical to the last one, so
     # images can't be overwritten
-    # this assumes lines are properly organized so inshallah
+    # this assumes lines are actually chronological so inshallah
     if time == previoustime:
         imgnumber += 1
     else:
@@ -206,18 +213,20 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
 
 
 if __name__ == '__main__':
-    # (testing) if argv is present, only do x quotes
+    # (testing) if an argument is present, only do count quotes
     if len(argv) > 2:
         jobs = int(argv[1])
     else:
         jobs = 0
     with open(csvpath, newline='\n') as csvfile:
+        total = len(list(csv.reader(csvfile)))
+        csvfile.seek(0)
         quotereader = csv.DictReader(csvfile, delimiter='|')
-        i = 0
-        for row in quotereader:
+        for i, row in enumerate(quotereader):
             if jobs and i >= jobs:
                 break
             else:
-                i += 1
                 TurnQuoteIntoImage(i, row['time'],row['quote'],
                 row['timestring'], row['author'], row['title'])
+            progressbar = f' /ᐠ - ˕ -マ Ⳋ working.... {i}/{total}'
+            print(progressbar, end='\r', flush=True)
