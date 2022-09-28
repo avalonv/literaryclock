@@ -4,11 +4,12 @@ import csv
 
 # constants
 csvpath = 'litclock_annotated_br2.csv'
-include_metadata = True    # whether to include author and title name
-imagesize = (600,800)
-color_bg = (255,255,255)   # white
-color_norm = (125,125,125) # grey
-color_high = (0,0,0)       # black
+imgformat = 'png'       # jpeg is faster but lossy
+include_metadata = True # whether to include author and title name
+imagesize = (600,800)   # width/height
+color_bg = 255          # white
+color_norm = 125        # grey
+color_high = 0          # black
 fntname_norm = 'bookerly.ttf'
 fntname_high = 'bookerlybold.ttf'
 fntname_cite = 'baskervilleboldbt.ttf'
@@ -26,7 +27,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     quotestart_y = 0
     quotestart_x = 20
 
-    paintedworld = Image.new(mode='RGB', size=(imagesize), color=color_bg)
+    paintedworld = Image.new(mode='L', size=(imagesize), color=color_bg)
     ariandel = ImageDraw.Draw(paintedworld)
 
     # draw credits
@@ -65,7 +66,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     else:
         imagenumber = 0
         previoustime = time
-    savepath = f'images/metadata/quote_{time}_{imagenumber}.jpeg'
+    savepath = f'images/metadata/quote_{time}_{imagenumber}.{imgformat}'
     paintedworld.save(savepath)
 
 
@@ -163,7 +164,7 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
     # returns wrapped text and fontsize, doesn't actually draw anything
 
     # these are just for calculating the textbox size, they're discarded
-    louvre = Image.new(mode='RGB', size=(0,0))
+    louvre = Image.new(mode='1', size=(0,0))
     monalisa = ImageDraw.Draw(louvre)
 
     lines = ''
