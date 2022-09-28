@@ -60,7 +60,7 @@ def TurnQuoteIntoImage(time:str, quote:str, timestring:str, author:str,
     else:
         imagenumber = 0
         previoustime = time
-    savepath = f'images/metadata/quote_{time}_{author}.png'
+    savepath = f'images/metadata/quote_{time}_{author}.jpeg'
     if not ariandel == None:
         paintedworld.save(savepath)
     else:
@@ -152,11 +152,13 @@ def wrap_lines(text:str, font:ImageFont.FreeTypeFont, line_length:int):
         return '\n'.join(lines)
 
 
-def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=2,
+def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
                                                               maxsize=800):
     # this will dynamically wrap and scale text with the optimal font size to
-    # fill a given textbox, both length and height wise. manually setting
-    # basesize and maxsize can speed up calculating very large batches of text.
+    # fill a given textbox, both length and height wise.
+    # manually setting basesize to just below the mean of a sample will
+    # massively reduce processing time with large batches of text, at the risk
+    # of potentially wasting it with strings much larger than the mean
     # returns wrapped text and fontsize, doesn't actually draw anything
 
     # these are just for calculating the textbox size, they're discarded
@@ -185,6 +187,10 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=2,
         fntsize -= 1
         fnt = fnt.font_variant(size=fntsize)
         boxlength = monalisa.multiline_textbbox((0,0), lines, fnt)[2]
+    # recursive call in case original basesize was too low
+    boxheight = monalisa.multiline_textbbox((0,0), lines, fnt)[3]
+    if boxheight > height:
+        return calc_fntsize(length, height, text, fntname, basesize-5)
     return lines, fntsize
 
 
