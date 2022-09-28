@@ -137,8 +137,8 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
                 marks_found += 1
                 wordnow = word.split(bookmark)[0]
                 word = word.split(bookmark)[1]
-                write((x,y), wordnow, *fntstyle_high)
-                x += textlength(wordnow, font_high)
+                write((x,y), wordnow, *current_style)
+                x += textlength(wordnow, current_style[1])
                 if marks_found == 1:
                     current_style = fntstyle_high
                 else: # if marks == 2:
