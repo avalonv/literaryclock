@@ -3,14 +3,12 @@ import csv
 try:
     from PIL import Image, ImageFont, ImageDraw
 except ModuleNotFoundError:
-    print("Please install Pillow!")
-    print("run 'pip3 install pillow'")
+    print("Please install Pillow!\nrun 'pip3 install pillow'")
     exit(1)
 
-
-# constants
+# options (these are constants)
 csvpath = 'litclock_annotated_br2.csv'
-imgpath = 'images/'
+imgdir = 'images/'
 imgformat = 'png'       # jpeg is faster but lossy
 include_metadata = True # whether to include author and title name
 imgsize = (600,800)     # width/height
@@ -29,7 +27,7 @@ previoustime = ''
 def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
                                                author:str, title:str):
     global imgnumber, previoustime
-    savepath = imgpath
+    savepath = imgdir
     quoteheight = 720
     quotelength = 570
     quotestart_y = 0
@@ -38,7 +36,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     mdatastart_y = 785
     mdatastart_x = 585
 
-    # create the object. mode 'L' restricts to 8bit black and white
+    # create the object. mode 'L' restricts to 8bit greyscale
     paintedworld = Image.new(mode='L', size=(imgsize), color=color_bg)
     ariandel = ImageDraw.Draw(paintedworld)
 
@@ -68,9 +66,9 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     try:
         draw_quote(ariandel, (quotestart_x,quotestart_y), quote,
                                 timestring, font_norm, font_high)
-    # warn if timestring is just not there
+    # warn and discard image if timestring is just not there
     except LookupError:
-        print(f"WARNING: missing timestring at csv line {index+1}, skipping")
+        print(f"WARNING: missing timestring at csv line {index+2}, skipping")
         return
 
     # increment a number if time is identical to the last one, so
@@ -212,21 +210,22 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
     return lines, fntsize
 
 
+# only run the script if invoked directly
 if __name__ == '__main__':
-    # (testing) if an argument is present, only do count quotes
-    if len(argv) > 2:
-        jobs = int(argv[1])
-    else:
-        jobs = 0
+    hardworker = ' /ᐠ - ˕ -マ Ⳋ'
     with open(csvpath, newline='\n') as csvfile:
-        total = len(list(csv.reader(csvfile)))
-        csvfile.seek(0)
+        # if number is passed as an argument, only do count quotes
+        if len(argv) > 2:
+            jobs = int(argv[1])
+        else:
+            jobs = len(csvfile.readlines()) - 1
+            csvfile.seek(0)
         quotereader = csv.DictReader(csvfile, delimiter='|')
         for i, row in enumerate(quotereader):
-            if jobs and i >= jobs:
+            if i >= jobs:
                 break
             else:
                 TurnQuoteIntoImage(i, row['time'],row['quote'],
                 row['timestring'], row['author'], row['title'])
-            progressbar = f' /ᐠ - ˕ -マ Ⳋ working.... {i}/{total}'
+            progressbar = f'{hardworker} working.... {i+1}/{jobs}'
             print(progressbar, end='\r', flush=True)
