@@ -1,7 +1,7 @@
 from PIL import Image, ImageFont, ImageDraw
+from sys import argv
 import csv
 
-jobs = 50
 imagenumber = 0
 previoustime = ''
 color_bg = (255,255,255)   # white
@@ -16,33 +16,45 @@ color_high = (0,0,0)       # black
 def TurnQuoteIntoImage(time:str, quote:str, timestring:str, author:str, title:str):
     global imagenumber, previoustime
     imagesize = (600,800)
-    quoteheight = 745
-    quotelength = 575
+    quoteheight = 720
+    quotelength = 570
+    credtlength = 500
     v_anchor = 0
     h_anchor = 14
-    c_fnt1 = (125,125,125) # grey
-    c_fnt2 = (0,0,0)       # black
-    c_bg = (255,255,255)   # white
-    fntname1 = 'bookerly.ttf'
-    fntname2 = 'bookerlybold.ttf'
+    credt_v_anchor = 740
+    credt_h_anchor = 575
+    fntname_norm = 'bookerly.ttf'
+    fntname_high = 'bookerlybold.ttf'
+    fntname_credt = 'baskervilleboldbt.ttf'
+    fntsize_credt = 25
 
-    ariandel = Image.new(mode='RGB', size=(imagesize), color=c_bg)
+    ariandel = Image.new(mode='RGB', size=(imagesize), color=color_bg)
     paintedworld = ImageDraw.Draw(ariandel)
 
-    attribution = f'—{title}, {author}'
+    quote, fntsize = calc_fntsize(quotelength, quoteheight, quote, fntname_high)
+    font_norm = ImageFont.FreeTypeFont(fntname_norm, fntsize)
+    font_high = ImageFont.FreeTypeFont(fntname_high, fntsize)
+    font_credt = ImageFont.FreeTypeFont(fntname_credt, fntsize_credt)
+    highlight_substr(paintedworld, (h_anchor,v_anchor), quote,
+                            timestring, font_norm, font_high)
 
+    credtext = f'—{title.strip()}, {author.strip()}'
+    if font_credt.getlength(credtext) > credtlength:
+        credtext = wrap_lines(credtext, font_credt, credtlength - 30)
+    # ImageDraw.multiline_text(xy, text, fill=None, font=None, anchor=None, spacing=4, align='left', direction=None, features=None, language=None, stroke_width=0, stroke_fill=None, embedded_color=False)
+    # paintedworld.multiline_text((credt_h_anchor, credt_v_anchor), credtext, color_high, font_credt, align='right')
+    for line in credtext.splitlines():
+        paintedworld.text((credt_h_anchor, credt_v_anchor), line, color_high, font_credt, anchor='rm')
+        credt_v_anchor += font_credt.getbbox("A")[3] + 4
 
-    quote, fntsize = calc_fntsize(quotelength, quoteheight, quote, fntname1)
-    fnt1 = ImageFont.FreeTypeFont(fntname1, fntsize)
-    fnt2 = ImageFont.FreeTypeFont(fntname2, fntsize)
-    paintedworld = highlight_substr(paintedworld, (h_anchor,v_anchor), quote, timestring, fnt1, fnt2)
+    # if font
 
     if time == previoustime:
         imagenumber += 1
     else:
         imagenumber = 0
         previoustime = time
-    savepath = f'images/test/quote_{time}_{author}.png'
+    savepath = f'images/metadata/quote_{time}_{author}.png'
     if not paintedworld == None:
         ariandel.save(savepath)
     else:
@@ -68,9 +80,9 @@ def highlight_substr(drawobj, anchors:tuple, text:str, substr:str,
     lines += f'{head}{text[substr_starts:substr_ends]}{head}'
     lines += text[substr_ends:]
 
-    style_norm = (color_norm, font_norm)
-    style_high = (color_high, font_high)
-    current_style = style_norm
+    fntstyle_norm = (color_norm, font_norm)
+    fntstyle_high = (color_high, font_high)
+    current_style = fntstyle_norm
     heads_found = 0
     write = drawobj.text
     textlength = drawobj.textlength
@@ -88,13 +100,13 @@ def highlight_substr(drawobj, anchors:tuple, text:str, substr:str,
             # bits stuck to it, and print the whole thing in 3 parts
             if word.count(head) == 2:
                 wordnow = word.split(head)[0]
-                write((h_pos, v_pos), wordnow, *style_norm)
+                write((h_pos, v_pos), wordnow, *fntstyle_norm)
                 h_pos += textlength(wordnow, font_norm)
                 wordnow = word.split(head)[1]
-                write((h_pos, v_pos), wordnow, *style_high)
+                write((h_pos, v_pos), wordnow, *fntstyle_high)
                 h_pos += textlength(wordnow, font_high)
                 wordnow = word.split(head)[2]
-                write((h_pos, v_pos), wordnow, *style_norm)
+                write((h_pos, v_pos), wordnow, *fntstyle_norm)
                 h_pos += textlength(wordnow, font_norm)
                 word = ''
             # otherwise change the default font, and wait for the next head
@@ -102,12 +114,12 @@ def highlight_substr(drawobj, anchors:tuple, text:str, substr:str,
                 heads_found += 1
                 wordnow = word.split(head)[0]
                 word = word.split(head)[1]
-                write((h_pos, v_pos), wordnow, *style_high)
+                write((h_pos, v_pos), wordnow, *fntstyle_high)
                 h_pos += textlength(wordnow, font_high)
                 if heads_found == 1:
-                    current_style = style_high
+                    current_style = fntstyle_high
                 else:# if heads_found == 1:
-                    current_style = style_norm
+                    current_style = fntstyle_norm
             # this is the bit that actually does most of the writing
             write((h_pos, v_pos), word, *current_style)
             h_pos += textlength(word, current_style[1])
@@ -116,8 +128,6 @@ def highlight_substr(drawobj, anchors:tuple, text:str, substr:str,
         # reason. see: https://github.com/python-pillow/Pillow/discussions/6620
         v_pos += font_norm.getbbox("A")[3] + 4
         h_pos = h_anchor
-
-    return drawobj
 
 
 def wrap_lines(text:str, font:ImageFont.FreeTypeFont, line_length:int):
@@ -171,6 +181,10 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=2,
     return lines, fntsize
 
 if __name__ == '__main__':
+    if len(argv) > 2:
+        jobs = int(argv[1])
+    else:
+        jobs = 50
     with open('litclock_annotated_br2.csv', newline='\n') as csvfile:
         quotereader = csv.DictReader(csvfile, delimiter='|')
         i = 0
