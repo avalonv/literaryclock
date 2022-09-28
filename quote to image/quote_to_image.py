@@ -2,52 +2,58 @@ from PIL import Image, ImageFont, ImageDraw
 from sys import argv
 import csv
 
-imagenumber = 0
-previoustime = ''
+# constants
+include_metadata = True    # whether to include author and title name
+imagesize = (600,800)
 color_bg = (255,255,255)   # white
 color_norm = (125,125,125) # grey
 color_high = (0,0,0)       # black
-# fontszie_credit = 18
-# font_credit = 'baskervilleboldbt.ttf'
-# font_norm = 'bookerly.ttf'
-# font_high = 'bookerlybold.ttf'
-# def add_credits(drawobj, author:str, title:str):
+fntname_norm = 'bookerly.ttf'
+fntname_high = 'bookerlybold.ttf'
+fntname_cite = 'baskervilleboldbt.ttf'
+fntsize_cite = 25
+# don't touch
+imagenumber = 0
+previoustime = ''
 
-def TurnQuoteIntoImage(time:str, quote:str, timestring:str, author:str, title:str):
+
+def TurnQuoteIntoImage(time:str, quote:str, timestring:str, author:str,
+                                                            title:str):
     global imagenumber, previoustime
-    imagesize = (600,800)
     quoteheight = 720
     quotelength = 570
-    credtlength = 500
-    v_anchor = 0
-    h_anchor = 14
-    credt_v_anchor = 740
-    credt_h_anchor = 575
-    fntname_norm = 'bookerly.ttf'
-    fntname_high = 'bookerlybold.ttf'
-    fntname_credt = 'baskervilleboldbt.ttf'
-    fntsize_credt = 25
+    quotestart_y = 0
+    quotestart_x = 20
 
-    ariandel = Image.new(mode='RGB', size=(imagesize), color=color_bg)
-    paintedworld = ImageDraw.Draw(ariandel)
+    paintedworld = Image.new(mode='RGB', size=(imagesize), color=color_bg)
+    ariandel = ImageDraw.Draw(paintedworld)
 
+    # draw credits
+    if include_metadata:
+        font_cite = ImageFont.FreeTypeFont(fntname_cite, fntsize_cite)
+        citation = f'—{title.strip()}, {author.strip()}'
+        citelength = 500
+        citestart_y = 785
+        citestart_x = 585
+        if font_cite.getlength(citation) > citelength:
+            citation = wrap_lines(citation, font_cite, citelength - 30)
+        # the more lines there are, the higher the credits start,
+        # this limits where the quote is allowed to end
+        for line in citation.splitlines():
+            citestart_y -= font_cite.getbbox("A")[3] + 4
+        quoteheight = citestart_y - 35
+        cite_y = citestart_y
+        for line in citation.splitlines():
+            ariandel.text((citestart_x, cite_y), line, color_high,
+                                                    font_cite, anchor='rm')
+            cite_y += font_cite.getbbox("A")[3] + 4
+
+    # draw quote
     quote, fntsize = calc_fntsize(quotelength, quoteheight, quote, fntname_high)
     font_norm = ImageFont.FreeTypeFont(fntname_norm, fntsize)
     font_high = ImageFont.FreeTypeFont(fntname_high, fntsize)
-    font_credt = ImageFont.FreeTypeFont(fntname_credt, fntsize_credt)
-    highlight_substr(paintedworld, (h_anchor,v_anchor), quote,
+    ariandel = draw_quote(ariandel, (quotestart_x,quotestart_y), quote,
                             timestring, font_norm, font_high)
-
-    credtext = f'—{title.strip()}, {author.strip()}'
-    if font_credt.getlength(credtext) > credtlength:
-        credtext = wrap_lines(credtext, font_credt, credtlength - 30)
-    # ImageDraw.multiline_text(xy, text, fill=None, font=None, anchor=None, spacing=4, align='left', direction=None, features=None, language=None, stroke_width=0, stroke_fill=None, embedded_color=False)
-    # paintedworld.multiline_text((credt_h_anchor, credt_v_anchor), credtext, color_high, font_credt, align='right')
-    for line in credtext.splitlines():
-        paintedworld.text((credt_h_anchor, credt_v_anchor), line, color_high, font_credt, anchor='rm')
-        credt_v_anchor += font_credt.getbbox("A")[3] + 4
-
-    # if font
 
     if time == previoustime:
         imagenumber += 1
@@ -55,17 +61,18 @@ def TurnQuoteIntoImage(time:str, quote:str, timestring:str, author:str, title:st
         imagenumber = 0
         previoustime = time
     savepath = f'images/metadata/quote_{time}_{author}.png'
-    if not paintedworld == None:
-        ariandel.save(savepath)
+    if not ariandel == None:
+        paintedworld.save(savepath)
     else:
         print(f'WARNING: missing timestring for {savepath}, discarding')
 
-def highlight_substr(drawobj, anchors:tuple, text:str, substr:str,
-        font_norm: ImageFont.FreeTypeFont, font_high: ImageFont.FreeTypeFont):
+
+def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
+        font_norm:ImageFont.FreeTypeFont, font_high:ImageFont.FreeTypeFont):
     # all this function does is add text to the drawobj with the substr
     # highlighted. it doesn't check if it will fit the image or anything else
-    h_anchor = anchors[0]
-    v_anchor = anchors[1]
+    start_x = anchors[0]
+    start_y = anchors[1]
 
     # treat text as a single line and enforce lowercase for searching
     flattened = text.replace('\n',' ')
@@ -86,9 +93,8 @@ def highlight_substr(drawobj, anchors:tuple, text:str, substr:str,
     heads_found = 0
     write = drawobj.text
     textlength = drawobj.textlength
-    # wordnow = ''
-    h_pos = h_anchor
-    v_pos = v_anchor
+    x = start_x
+    y = start_y
     # this would be a LOT simpler if we didn't have to check the edges attached
     # to the substring. it might be easier to implement a char by char loop
     # in the future, using the kerning calculation method in this example:
@@ -100,34 +106,35 @@ def highlight_substr(drawobj, anchors:tuple, text:str, substr:str,
             # bits stuck to it, and print the whole thing in 3 parts
             if word.count(head) == 2:
                 wordnow = word.split(head)[0]
-                write((h_pos, v_pos), wordnow, *fntstyle_norm)
-                h_pos += textlength(wordnow, font_norm)
+                write((x,y), wordnow, *fntstyle_norm)
+                x += textlength(wordnow, font_norm)
                 wordnow = word.split(head)[1]
-                write((h_pos, v_pos), wordnow, *fntstyle_high)
-                h_pos += textlength(wordnow, font_high)
+                write((x,y), wordnow, *fntstyle_high)
+                x += textlength(wordnow, font_high)
                 wordnow = word.split(head)[2]
-                write((h_pos, v_pos), wordnow, *fntstyle_norm)
-                h_pos += textlength(wordnow, font_norm)
+                write((x,y), wordnow, *fntstyle_norm)
+                x += textlength(wordnow, font_norm)
                 word = ''
             # otherwise change the default font, and wait for the next head
             elif word.count(head) == 1:
                 heads_found += 1
                 wordnow = word.split(head)[0]
                 word = word.split(head)[1]
-                write((h_pos, v_pos), wordnow, *fntstyle_high)
-                h_pos += textlength(wordnow, font_high)
+                write((x,y), wordnow, *fntstyle_high)
+                x += textlength(wordnow, font_high)
                 if heads_found == 1:
                     current_style = fntstyle_high
-                else:# if heads_found == 1:
+                else: # if heads_found == 1:
                     current_style = fntstyle_norm
             # this is the bit that actually does most of the writing
-            write((h_pos, v_pos), word, *current_style)
-            h_pos += textlength(word, current_style[1])
+            write((x,y), word, *current_style)
+            x += textlength(word, current_style[1])
         # the offset calculated by multiline_text (what we're trying to mimic)
         # is based on uppercase letter A plus 4 pixels for whatever fucking
-        # reason. see: https://github.com/python-pillow/Pillow/discussions/6620
-        v_pos += font_norm.getbbox("A")[3] + 4
-        h_pos = h_anchor
+        # reason. see https://github.com/python-pillow/Pillow/discussions/6620
+        y += font_norm.getbbox("A")[3] + 4
+        x = start_x
+    return drawobj
 
 
 def wrap_lines(text:str, font:ImageFont.FreeTypeFont, line_length:int):
@@ -180,6 +187,7 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=2,
         boxlength = monalisa.multiline_textbbox((0,0), lines, fnt)[2]
     return lines, fntsize
 
+
 if __name__ == '__main__':
     if len(argv) > 2:
         jobs = int(argv[1])
@@ -190,12 +198,7 @@ if __name__ == '__main__':
         i = 0
         for row in quotereader:
             if i >= jobs:
-            # if i >= 100:
                 break
             else:
                 i += 1
                 TurnQuoteIntoImage(row['time'],row['quote'], row['timestring'], row['author'], row['title'])
-    # text = "Midnight, and there was frost on the fields and patches of black ice on a road notorious for its accidents—there were bunches of dead flowers tied to fence posts and telegraph poles, and torn gaps in hedges, like some kind of failed crop."
-    # font = ImageFont.FreeTypeFont('bookerly.ttf', 53)
-    # print("...\n\n\n...")
-    # print(wrap_lines(text, font, 570))
