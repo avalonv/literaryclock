@@ -55,10 +55,11 @@ def highlight_substr(drawobj, anchors:tuple, text:str, substr:str,
     h_anchor = anchors[0]
     v_anchor = anchors[1]
 
-    # the case for the substr can be mismatched. Checking this is very important
+    # treat text as a single line and enforce lowercase for searching
+    flattened = text.replace('\n',' ')
     substr_starts = 0
     try:
-        substr_starts = text.lower().index(substr.lower())
+        substr_starts = flattened.lower().index(substr.lower())
     except ValueError:
         return None
     substr_ends = substr_starts + len(substr)
