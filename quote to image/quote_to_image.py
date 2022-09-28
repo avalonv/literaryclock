@@ -4,9 +4,10 @@ import csv
 
 # constants
 csvpath = 'litclock_annotated_br2.csv'
+imgpath = 'images/'
 imgformat = 'png'       # jpeg is faster but lossy
 include_metadata = True # whether to include author and title name
-imagesize = (600,800)   # width/height
+imgsize = (600,800)   # width/height
 color_bg = 255          # white
 color_norm = 125        # grey
 color_high = 0          # black
@@ -15,22 +16,23 @@ fntname_high = 'bookerlybold.ttf'
 fntname_cite = 'baskervilleboldbt.ttf'
 fntsize_cite = 25
 # don't touch
-imagenumber = 0
+imgnumber = 0
 previoustime = ''
 
 
 def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
                                                author:str, title:str):
-    global imagenumber, previoustime
+    global imgnumber, previoustime
     quoteheight = 720
     quotelength = 570
     quotestart_y = 0
     quotestart_x = 20
+    savepath = imgpath
 
-    paintedworld = Image.new(mode='L', size=(imagesize), color=color_bg)
+    paintedworld = Image.new(mode='L', size=(imgsize), color=color_bg)
     ariandel = ImageDraw.Draw(paintedworld)
 
-    # draw credits
+    # draw the credits
     if include_metadata:
         font_cite = ImageFont.FreeTypeFont(fntname_cite, fntsize_cite)
         citation = f'—{title.strip()}, {author.strip()}'
@@ -49,24 +51,30 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
             ariandel.text((citestart_x, cite_y), line, color_high,
                                                     font_cite, anchor='rm')
             cite_y += font_cite.getbbox("A")[3] + 4
+    else:
+        savepath += 'nometadata/'
 
-    # draw quote
+    # draw the quote (pretty)
     quote, fntsize = calc_fntsize(quotelength, quoteheight, quote, fntname_high)
     font_norm = ImageFont.FreeTypeFont(fntname_norm, fntsize)
     font_high = ImageFont.FreeTypeFont(fntname_high, fntsize)
     try:
         draw_quote(ariandel, (quotestart_x,quotestart_y), quote,
                                 timestring, font_norm, font_high)
+    # warn if timestring is just not there
     except LookupError:
         print(f"WARNING: missing timestring at csv line {index+1}, skipping")
         return
 
+    # increment a number if time is indentical to the last one, so
+    # images can't be overwritten
+    # this assumes lines are properly organized so inshallah
     if time == previoustime:
-        imagenumber += 1
+        imgnumber += 1
     else:
-        imagenumber = 0
+        imgnumber = 0
         previoustime = time
-    savepath = f'images/metadata/quote_{time}_{imagenumber}.{imgformat}'
+    savepath += f'quote_{time}_{imgnumber}.{imgformat}'
     paintedworld.save(savepath)
 
 
@@ -77,7 +85,8 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     start_x = anchors[0]
     start_y = anchors[1]
 
-    # treat text as a single line and enforce lowercase for searching
+    # search for the substring as if text were a single line, and
+    # mark its starting and ending position for the upcoming write loop
     flattened = text.replace('\n',' ')
     substr_starts = 0
     try:
@@ -85,15 +94,15 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     except ValueError:
         raise LookupError
     substr_ends = substr_starts + len(substr)
-    head = '|'
+    bookmark = '|'
     lines = text[:substr_starts]
-    lines += f'{head}{text[substr_starts:substr_ends]}{head}'
+    lines += f'{bookmark}{text[substr_starts:substr_ends]}{bookmark}'
     lines += text[substr_ends:]
 
     fntstyle_norm = (color_norm, font_norm)
     fntstyle_high = (color_high, font_high)
     current_style = fntstyle_norm
-    heads_found = 0
+    marks_found = 0
     write = drawobj.text
     textlength = drawobj.textlength
     x = start_x
@@ -105,29 +114,29 @@ def draw_quote(drawobj, anchors:tuple, text:str, substr:str,
     for line in lines.splitlines():
         for word in line.split():
             word += ' '
-            # if the entire substr is one word, split the non-substr
-            # bits stuck to it, and print the whole thing in 3 parts
-            if word.count(head) == 2:
-                wordnow = word.split(head)[0]
+            # if the entire substr is one contiguous word, split the
+            # non-substr bits stuck to it and print the whole thing in 3 parts
+            if word.count(bookmark) == 2:
+                wordnow = word.split(bookmark)[0]
                 write((x,y), wordnow, *fntstyle_norm)
                 x += textlength(wordnow, font_norm)
-                wordnow = word.split(head)[1]
+                wordnow = word.split(bookmark)[1]
                 write((x,y), wordnow, *fntstyle_high)
                 x += textlength(wordnow, font_high)
-                wordnow = word.split(head)[2]
+                wordnow = word.split(bookmark)[2]
                 write((x,y), wordnow, *fntstyle_norm)
                 x += textlength(wordnow, font_norm)
                 word = ''
-            # otherwise change the default font, and wait for the next head
-            elif word.count(head) == 1:
-                heads_found += 1
-                wordnow = word.split(head)[0]
-                word = word.split(head)[1]
+            # otherwise change the default font, and wait for the next mark
+            elif word.count(bookmark) == 1:
+                marks_found += 1
+                wordnow = word.split(bookmark)[0]
+                word = word.split(bookmark)[1]
                 write((x,y), wordnow, *fntstyle_high)
                 x += textlength(wordnow, font_high)
-                if heads_found == 1:
+                if marks_found == 1:
                     current_style = fntstyle_high
-                else: # if heads_found == 1:
+                else: # if marks == 1:
                     current_style = fntstyle_norm
             # this is the bit that actually does most of the writing
             write((x,y), word, *current_style)
@@ -197,6 +206,7 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
 
 
 if __name__ == '__main__':
+    # (testing) if argv is present, only do x quotes
     if len(argv) > 2:
         jobs = int(argv[1])
     else:
@@ -209,4 +219,5 @@ if __name__ == '__main__':
                 break
             else:
                 i += 1
-                TurnQuoteIntoImage(i, row['time'],row['quote'], row['timestring'], row['author'], row['title'])
+                TurnQuoteIntoImage(i, row['time'],row['quote'],
+                row['timestring'], row['author'], row['title'])
