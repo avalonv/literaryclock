@@ -31,21 +31,22 @@ def TurnQuoteIntoImage(time:str, quote:str, timestring:str, author:str, title:st
 
     attribution = f'—{title}, {author}'
 
-    if time == previoustime:
-        imagenumber += 1
-    else:
-        imagenumber = 0
-        previoustime = time
-    savepath = f'images/test/quote_{time}_{author}.png'
 
     quote, fntsize = calc_fntsize(quotelength, quoteheight, quote, fntname1)
     fnt1 = ImageFont.FreeTypeFont(fntname1, fntsize)
     fnt2 = ImageFont.FreeTypeFont(fntname2, fntsize)
     paintedworld = highlight_substr(paintedworld, (h_anchor,v_anchor), quote, timestring, fnt1, fnt2)
 
+    if time == previoustime:
+        imagenumber += 1
+    else:
+        imagenumber = 0
+        previoustime = time
+    savepath = f'images/test/quote_{time}_{author}.png'
     if not paintedworld == None:
         ariandel.save(savepath)
-    # ariandel.show()
+    else:
+        print(f'WARNING: missing timestring for {savepath}, discarding')
 
 def highlight_substr(drawobj, anchors:tuple, text:str, substr:str,
         font_norm: ImageFont.FreeTypeFont, font_high: ImageFont.FreeTypeFont):
@@ -82,7 +83,7 @@ def highlight_substr(drawobj, anchors:tuple, text:str, substr:str,
     for line in lines.splitlines():
         for word in line.split():
             word += ' '
-            # if the entire timestring is one word, split the non-timestr
+            # if the entire substr is one word, split the non-substr
             # bits stuck to it, and print the whole thing in 3 parts
             if word.count(head) == 2:
                 wordnow = word.split(head)[0]
