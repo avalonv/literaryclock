@@ -1,4 +1,6 @@
+# -*- coding: utf-8 -*-
 from sys import argv, exit
+from os import path
 import csv
 try:
     from PIL import Image, ImageFont, ImageDraw
@@ -81,6 +83,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
         previoustime = time
     time = time.replace(':','')
     savepath += f'quote_{time}_{imgnumber}.{imgformat}'
+    savepath = path.normpath(savepath)
     paintedworld.save(savepath)
 
 
@@ -213,7 +216,7 @@ def calc_fntsize(length:int, height:int, text:str, fntname:str, basesize=50,
 
 def main():
     hardworker = ' /ᐠ - ˕ -マ Ⳋ'
-    with open(csvpath, newline='\n') as csvfile:
+    with open(csvpath, newline='\n', encoding="utf8") as csvfile:
         # if number is passed as an argument, only process count items
         if len(argv) > 1:
             jobs = int(argv[1])
