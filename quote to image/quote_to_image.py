@@ -79,6 +79,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     else:
         imgnumber = 0
         previoustime = time
+    time = time.replace(':','')
     savepath += f'quote_{time}_{imgnumber}.{imgformat}'
     paintedworld.save(savepath)
 
