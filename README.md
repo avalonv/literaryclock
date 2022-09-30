@@ -1,14 +1,12 @@
-
 # WIP
 
-This is a fork of https://github.com/elegantalchemist/literaryclock/ with personal modifications. 
+This is a fork of https://github.com/elegantalchemist/literaryclock/ with personal modifications.
 
 I haven't been able to test the entire project yet due to not owning the Kindle model used by the original (newer kindles will not work). I plan to rewrite the internal kindle scripts to possibly make it accessible via KUAL, which is generally considered easier to install in newer devices than launchpad.
 
 In the meantime, I've completely rewritten the [script](https://github.com/avalonv/literaryclock/tree/main/quote%20to%20image) used for generating the images, originally the most bothersome part of this project. It's still being worked on, as there are some discrepnacies between Windows and Linux performance, but you can currently test it for yourself.
 
 # literaryclock
-
 Repurposing a Kindle into a clock which tells time entirely through real book quotes. A fascinating conversation piece as well as a beautiful and functional clock.
 
 Non-destructive, the clock can be exited and the Kindle used as normal at any point.
@@ -33,11 +31,12 @@ The SSH is the hardest part by far but it's only needed for a small part
 * **WARNING** None of this is what the kindle is designed to do and it's not hard to get it wrong and brick the Kindle. Do not proceed unless you are comfortable with this risk.
 
 ## **Step 1 - Make Some Images**
-* Run the quote_to_image PHP script to generate your images in the 'images' and 'nometadata' folders. This assumes you have the gd and imagick extensions available and activated and the appropriate fonts in the same folder as the script. The script is designed to run in the same folder as the quotes csv file. There are various things you can do at this point - change fonts, link the files in different ways etc.
-* The end result is you should have two folders each containing 2,300+ images. These two folders can be copied into the timelit folder so they run like .../timelit/images/nometadata.
+* Run the quote_to_image python script to generate your images in the 'images' folder. The script is designed to run in the same folder as the quotes csv file. See the readme.md in that folder for detailed instructions on how to remove or add new quotes.
+* If you prefer to generate images without the author and title in them, you can change the line that says "include_metadata" to "False". These will be saved to /images/nometadata/ by default.
+* You'll need to have Python and the Pillow module installed - `pip3 install pillow`. Installing Python is OS dependent but otherwise very straightforward.
+* The end result is you should have a folder containing 2,300+ images. This folder can be copied into the timelit folder so they run like .../timelit/images/.
 * When it comes to copy the timelit folder across this can be done in one step, scripts and images all together.
-* You'll need to install PHP and enable the extensions gd & imagick - this is OS dependent.
-* If this is a problem for you (because nobody got time for PHP), I have included a zipped folder with all the images and nometadata copies also.
+* Generating the images should take less than 5 minutes. If this is a problem for you, I have included a zipped folder with all the metadata images also.
 
 ## **Step 2** - Jailbreak the kindle and install appropriate software - see the sources folder for these files
 * **Optional but useful** Update the kindle amazon firmware to the newest, this helps with time and date setting in the background. Firmwares available here pay attention to your serial number https://www.amazon.com/gp/help/customer/display.html?nodeId=GX3VVAQS4DYDE5KE
@@ -55,7 +54,7 @@ The SSH is the hardest part by far but it's only needed for a small part
 * Copy and paste over the utils folder into /mnt/us/ so there now exists /mnt/us/utils which contains other utility scripts
 * Copy the startClock.ini file to the existing /mnt/us/launchpad folder (this provides the key combo to enable SSH as well as the clock)
 * Activate SSH over wifi by editing 'config' file in /mnt/us/usbnet/etc to turn 'allow ssh over wifi' to true. You can also update the kindle's local IP address expectations here, although I'm not sure if this is necessary for SSH over WiFi.
-* All of the above can be done over USB in windows (and presumably linux) as the 'external' storage visible when you plug in just like a USB stick is /mnt/us/
+* All of the above can be done over USB in windows (and linux) as the 'external' storage visible when you plug in just like a USB stick is /mnt/us/
 * Restart the kindle (settings -> menu -> settings -> restart). This is needed to get the key combinations activated in launchpad. A soft reboot after an update won't do the same as a full restart - you need a full restart to get this implemented.
 * Now if you select Shift, then N on the keypad (press shift, let go, press n) the message 'success' should pop up and networking is turned on to allow SSH connections. If this doesn't work then the tedious way is to use the kindle search function and search for ';debugOn' then '~usbNetwork' then ';debugOff' (without quotes but with tilde/semicolon) and this will turn SSH access on.
 * SSH into your kindle - I prefer PuTTY (get the IP of the Kindle from your router (default will try to be 192.168.2.2, see /mnt/us/usbnet/etc/config), user is root, password can be found using the serial number here: https://www.sven.de/kindle/?# or use the python script included in sources here - may need to try all 4 to get one which works)
