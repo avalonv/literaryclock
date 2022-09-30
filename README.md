@@ -1,6 +1,6 @@
 # literaryclock
 
-(Personal fork of https://github.com/elegantalchemist/literaryclock/)
+(Fork of https://github.com/elegantalchemist/literaryclock/ with personal modifications)
 
 Repurposing a Kindle into a clock which tells time entirely through real book quotes. A fascinating conversation piece as well as a beautiful and functional clock.
 
