@@ -1,8 +1,8 @@
 ## Converting Quotes to Images
 
-This contains an awesome PHP script to conver the list of quotes into images. Although the file appears as a CSV and opens as one, it looks really awful in excel as the commas in the quotes are preserved so it breaks into columns. Excel also breaks it if you try and edit it. I recommend opening and editing in something like Visual Studio Code.
+This contains a Python script to convert the list of quotes into png images. Although the file appears as a CSV and opens as one, it looks really awful in excel as the commas in the quotes are preserved so it breaks them into columns. I recommend opening and editing it in an actual text editor like Visual Studio Code.
 
-The format is quite simple if you want to add more
+The format is quite simple if you want to add new quotes or edit existing ones
 
 * 24h time|time reference|literary quote with time reference inside it|Book Title|Author
 
@@ -10,9 +10,12 @@ Written as an example
 * 16:15|quarter past four|At a quarter past four he stumbled home drunk|Foo-Book Title|Bar-Author
 
 ## Using the script
-Run the script in the same location as the csv quotes file - it's PHP - you'll need the gd extension and image magic extension, check where the fonts are coming from or just dump them in the same folder as the php file like I have here, check the csv file name it will be using. You need to create the image and image/nometadata folders for the script to put the images in, the PHP script can't create them itself.
+This requires Python 3, and the Pillow module.
 
-The script produces a standard folder of images with metadata (author, title) and a folder without the metadata added. The code used to have a 'quiz' function which I have removed so you only need the standard images with metadata now.
+Run the script in this folder — `python quote_to_image.py`, make sure the csv file and fonts are in the same folder.
 
-## Images here
-If the whole PHP thing isn't your bag, the zip file here (split into 5 pieces) contains the images and nometadata folders zipped up already - you can unzip to where they belong /mnt/us/timelit/images/nometadata
+If you only want to generate x images (say, for testing how a quote you added looks), you can pass a number as an argument to the script — `python quote_to_image.py 5` will only process the first 5 lines in the csv file (excluding the header).
+
+If you prefer the images to not show the title and author, you can open quote_to_image.py in a text editor and edit the line that says "include_metadata" to "False".
+
+The images will be saved to the images/ or images/nometadata folders depending on this option.
