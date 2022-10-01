@@ -31,8 +31,7 @@ The SSH is the hardest part by far but it's only needed for a small part
 * **WARNING** None of this is what the kindle is designed to do and it's not hard to get it wrong and brick the Kindle. Do not proceed unless you are comfortable with this risk.
 
 ## **Step 1 - Make Some Images**
-* Run the quote_to_image python script to generate your images in the 'images' folder. The script is designed to run in the same folder as the quotes csv file. See the readme.md in that folder for detailed instructions on how to remove or add new quotes.
-* If you prefer to generate images without the author and title in them, you can change the line that says "include_metadata" to "False". These will be saved to /images/nometadata/ by default.
+* Run the quote_to_image python script to generate your images in the 'images' folder. The script is designed to run in the same folder as the quotes csv file. See the [readme.md](https://github.com/avalonv/literaryclock/tree/main/quote%20to%20image) included in that folder for detailed instructions.
 * You'll need to have Python and the Pillow module installed - `pip3 install pillow`. Installing Python is OS dependent but otherwise very straightforward.
 * The end result is you should have a folder containing 2,300+ images. This folder can be copied into the timelit folder so they run like .../timelit/images/.
 * When it comes to copy the timelit folder across this can be done in one step, scripts and images all together.
