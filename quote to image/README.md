@@ -15,7 +15,7 @@ This requires [Python](https://apps.microsoft.com/store/search/python) 3.6 or hi
 
 Run the script with `python3 quote_to_image.py`, make sure the csv file and fonts are in the same folder.
 
-* If you prefer to generate images without the author and title in them, you can open quote_to_image.py in a text editor and change the line that says "include_metadata" to "False". These will be saved to /images/nometadata/ by default.
+If you prefer to generate images without the author and title in them, you can open quote_to_image.py in a text editor and change the line that says "include_metadata" to "False". These will be saved to /images/nometadata/ by default.
 
 Fonts can also be changed in this manner, simply add a new truetype font to this folder and edit the appropriate entry.
 
