@@ -1,10 +1,10 @@
 # WIP
 
-This is a fork of https://github.com/elegantalchemist/literaryclock/ with personal modifications.
+This is work in progress a fork of https://github.com/elegantalchemist/literaryclock/ with personal modifications.
 
-I haven't been able to test the entire project yet due to not owning the Kindle model used by the original (newer kindles will not work). I plan to rewrite the internal kindle scripts to possibly make it accessible via KUAL, which is generally considered easier to install in newer devices than launchpad.
+I haven't been able to test the entire project yet due to not owning the Kindle model used by the original (newer kindles will not work). At any rate, I plan to rewrite the internal kindle scripts to possibly make it accessible via KUAL, which is generally considered easier to install in newer devices than launchpad.
 
-In the meantime, I've completely rewritten the [script](https://github.com/avalonv/literaryclock/tree/main/quote%20to%20image) used for generating the images, originally the most bothersome part of this project. It's still being worked on, as there are some discrepnacies between Windows and Linux performance, but you can currently test it for yourself.
+In the meantime, I've completely rewritten the [script](https://github.com/avalonv/literaryclock/tree/main/quote%20to%20image) used for generating the images, originally the most bothersome part of this project. It's still being worked on, as there are some discrepnacies between Windows and Linux performance, but everything in at least "Step 1" should be working.
 
 # literaryclock
 Repurposing a Kindle into a clock which tells time entirely through real book quotes. A fascinating conversation piece as well as a beautiful and functional clock.
