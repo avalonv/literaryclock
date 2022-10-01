@@ -11,14 +11,16 @@ Written as an example
 * 16:15|quarter past four|At a quarter past four he stumbled home drunk|Foo-Book Title|Bar-Author
 
 ## Using the script
-This requires [Python 3.6 or higher](https://apps.microsoft.com/store/search/python), and the Pillow imaging library (`pip3 install pillow`).
+This requires [Python](https://apps.microsoft.com/store/search/python) 3.6 or higher, and the [Pillow](https://pillow.readthedocs.io/en/latest/installation.html#basic-installation) imaging library (`pip3 install pillow`)[^1].
 
-Run the script with `python quote_to_image.py`, make sure the csv file and fonts are in the same folder.
+Run the script with `python3 quote_to_image.py`, make sure the csv file and fonts are in the same folder.
 
 If you prefer the images to not show the title and author, you can open quote_to_image.py in a text editor and edit the line that says "include_metadata" to "False".
 
 Fonts can also be changed in this manner, simply add a new truetype font to this folder and edit the appropriate entry.
 
-If you only want to generate x images (say, for testing how a font or a quote looks), you can pass a number as an argument to the script — `python quote_to_image.py 5` will only process the first 5 lines in the csv file (excluding the header).
+If you only want to generate x images (say, for testing how a font or a quote looks), you can pass a number as an argument to the script — `python3 quote_to_image.py 5` will only process the first 5 lines in the csv file (excluding the header).
 
 The images will be saved to the images/ or images/nometadata folders depending on this option.
+
+[^1]: Python is preinstalled on virtually every Linux distribution and MacOS, in which case you only need to install Pillow.
