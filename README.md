@@ -35,7 +35,6 @@ The SSH is the hardest part by far but it's only needed for a small part
 * You'll need to have Python and the Pillow module installed - `pip3 install pillow`. Installing Python is OS dependent but otherwise very straightforward.
 * The end result is you should have a folder containing 2,300+ images. This folder can be copied into the timelit folder so they run like .../timelit/images/.
 * When it comes to copy the timelit folder across this can be done in one step, scripts and images all together.
-* Generating the images should take less than 5 minutes. If this is a problem for you, I have included a zipped folder with all the metadata images also.
 
 ## **Step 2** - Jailbreak the kindle and install appropriate software - see the sources folder for these files
 * **Optional but useful** Update the kindle amazon firmware to the newest, this helps with time and date setting in the background. Firmwares available here pay attention to your serial number https://www.amazon.com/gp/help/customer/display.html?nodeId=GX3VVAQS4DYDE5KE
