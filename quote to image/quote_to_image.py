@@ -223,8 +223,7 @@ def create_fnt(name:str, size:int, layout_engine=ImageFont.Layout.BASIC):
 def main():
     hardworker = ' /ᐠ - ˕ -マ Ⳋ'
     with open(csvpath, newline='\n', encoding="utf8") as csvfile:
-        # if number is passed as an argument, only process count items
-        if len(argv) > 1:
+        if len(argv) > 1 and argv[1].isdigit():
             jobs = int(argv[1])
         else:
             jobs = len(csvfile.readlines()) - 1
@@ -240,7 +239,6 @@ def main():
             print(progressbar, end='\r', flush=True)
 
 
-# only run the script if invoked directly
 if __name__ == '__main__':
     try:
         main()
