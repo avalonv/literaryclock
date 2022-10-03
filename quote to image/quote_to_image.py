@@ -34,7 +34,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     quotelength = 570
     quotestart_y = 0
     quotestart_x = 20
-    mdatalength = 400
+    mdatalength = 450
     mdatastart_y = 785
     mdatastart_x = 585
 
@@ -223,11 +223,11 @@ def create_fnt(name:str, size:int, layout_engine=ImageFont.Layout.BASIC):
 def main():
     hardworker = ' /ᐠ - ˕ -マ Ⳋ'
     with open(csvpath, newline='\n', encoding="utf8") as csvfile:
-        if len(argv) > 1 and argv[1].isdigit():
-            jobs = int(argv[1])
-        else:
-            jobs = len(csvfile.readlines()) - 1
-            csvfile.seek(0)
+        jobs = len(csvfile.readlines()) - 1
+        csvfile.seek(0)
+        if len(argv) > 1:
+            if argv[1].isdigit() and int(argv[1]) < jobs:
+                jobs = int(argv[1])
         quotereader = csv.DictReader(csvfile, delimiter='|')
         for i, row in enumerate(quotereader):
             if i >= jobs:
@@ -237,12 +237,12 @@ def main():
                 row['timestring'], row['author'], row['title'])
             progressbar = f'{hardworker} working.... {i+1}/{jobs}'
             print(progressbar, end='\r', flush=True)
+    print("")
 
 
 if __name__ == '__main__':
     try:
         main()
-        print("")
     except KeyboardInterrupt:
         print("\nI hate work")
         exit(0)
