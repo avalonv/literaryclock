@@ -34,7 +34,7 @@ def TurnQuoteIntoImage(index:int, time:str, quote:str, timestring:str,
     quotelength = 570
     quotestart_y = 0
     quotestart_x = 20
-    mdatalength = 500
+    mdatalength = 400
     mdatastart_y = 785
     mdatastart_x = 585
 
