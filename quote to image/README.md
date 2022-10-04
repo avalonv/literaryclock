@@ -13,11 +13,11 @@ Written as an example
 ## Using the script
 This requires [Python](https://apps.microsoft.com/store/search/python) 3.6 or higher, and the [Pillow](https://pillow.readthedocs.io/en/latest/installation.html#basic-installation) imaging library (`pip3 install pillow`)[^1].
 
-Run the script with `python3 quote_to_image.py`, make sure the csv file and fonts are in the same folder.
+Run the script with `python3 quote_to_image.py`, from the same folder as the csv file and fonts.
 
 If you prefer to generate images without the author and title in them, you can open quote_to_image.py in a text editor and change the line that says "include_metadata" to "False". These will be saved to /images/nometadata/ by default.
 
-Fonts can also be changed in this manner, simply add a new truetype font to this folder and edit the appropriate entry.
+Fonts can also be changed in this manner, simply add a new truetype font to this folder and edit the name of the appropriate entry.
 
 If you only want to generate x images (say, for testing how a font or a quote looks), you can pass a number as an argument to the script — `python3 quote_to_image.py 5` will only process the first 5 lines in the csv file (excluding the header).
 
