@@ -21,4 +21,8 @@ Fonts can also be changed in this manner, simply add a new truetype font to this
 
 If you only want to generate x images (say, for testing how a font or a quote looks), you can pass a number as an argument to the script — `python3 quote_to_image.py 5` will only process the first 5 lines in the csv file (excluding the header).
 
+## Credits
+
+Thanks to [tjaap](https://www.instructables.com/Literary-Clock-Made-From-E-reader/) for creating the original version of this script in PHP.
+
 [^1]: Python is preinstalled on virtually every Linux distribution and MacOS, in which case you only need to install Pillow.
